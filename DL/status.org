@@ -1,0 +1,8 @@
+#+TITLE: Status of Edition
+#+DATE:  <2018-12-25 Tue>
+
+| Note Title                                                                       | Type         | Status |
+|----------------------------------------------------------------------------------+--------------+--------|
+| [[file:deep_learning_review.org][Deep Learning Review]]                                                             | Full Content | WIP    |
+| [[file:./rcnn.org][Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation]] | Full Content | WIP    |
+|                                                                                  |              |        |
