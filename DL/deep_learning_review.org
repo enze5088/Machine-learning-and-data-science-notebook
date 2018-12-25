@@ -1,0 +1,571 @@
+#+TITLE:     Note: Deep Learning Review
+#+AUTHOR:    MoozIiSP
+#+STARTUP:   indent
+#+SETUPFILE: theme-readtheorg.setup
+
+* TODO Summary
+
+* 绪论
+
+"Conventional machine-learning techniques were limited in their ability to
+process natural data in their raw form." ( :1)
+传统的机器学习技术有限。
+
+"Representation learning is a set of methods that allows a machine to be fed
+with raw data and to automatically discover the representations needed for
+detection or classification." ( :1)
+表征学习的定义。
+
+"each transform the representation at one level (starting with the raw input)
+into a representation at a higher, slightly more abstract level." ( :1)
+从低维度到高维度表征的抽象。
+
+#+begin_quote
+"An image, for example, comes in the form of an array of pixel values, and the
+learned features in the first layer of representation typically represent the
+presence or absence of edges at particular orientations and locations in the
+image. The second layer typically detects motifs by spotting particular
+arrangements of edges, regardless of small variations in the edge positions. The
+third layer may assemble motifs into larger combinations that correspond to
+parts of familiar objects, and subsequent layers would detect objects as
+combinations of these parts." ( :1)
+#+end_quote
+
+对于图像数据的描述，图像是一个二维像素值的矩阵。
+1. 从表征的第一层学习到的特征一般表示特殊方向的边缘存在与否以及图像中其所在的位
+   置。
+2. 第二层通常识别那些由边缘特征构成的具有特殊规律的图案，无论边缘特征位置的微小
+   变化。
+3. 第三层会将这些图案组装成与对象部分相似且更大的组合，之后的层结构会将对象视为
+   这些部件的组合。
+
+"these layers of features are not designed by human engineers" ( :1)
+这些层结构的特征并不是由人类工程师设计。
+
+#+begin_quote
+"In addition to beating records in image recognition^{1-4} and speech
+recognition^{5-7}, it has beaten other machine-learning techniques at predicting
+the activity of potential drug molecules^{8}, analysing particle accelerator
+data^{9,10}, reconstructing brain circuits^11, and predicting the effects of
+mutations in non-coding DNA on gene expression and disease^{12,13}. Perhaps more
+surprisingly, deep learning has produced extremely promising results for various
+tasks in natural language understanding^{14}, particularly topic classification,
+sentiment analysis, question answering^{15} and language translation^{16,17}." ( :1)
+#+end_quote
+
+多领域突破，例如说预测潜在的药物分子、分析粒子加速器的数据、重建大脑回路和预测非
+编码DNA在基因表达和癌症的突变效应。此外，也在其他任务中取得了极其出色的结果，诸
+如自然语言理解、特殊话题分类、情感分析、问答以及语言翻译。
+
+* 监督学习
+
+介绍了监督学习的主要流程，以及一些相关的术语，如权重（weights）。
+
+"These adjustable parameters, often called weights, are real numbers that can be
+seen as 'knobs' that define the input-output function of the machine." ( :1)
+这些可调整的参数经常被称为权重（weights），是实数值，可视为“knobs”。
+
+"hilly landscape" ( :2)
+丘陵景观
+
+"average gradient" ( :2)
+平均梯度，需要参考SGD方法。
+
+"It is called stochastic because each small set of examples gives a noisy
+estimate of the average gradient over all examples." ( :2)
+需要参考SGD。
+
+"when compared with far more elaborate optimization techniques 18" ( :2)
+SGD与参考文献18中的优化技术相比，经常快到出人意料地找到好的一组权重。
+
+"It also works when x , y and z are vectors (and the derivatives are Jacobian
+matrices)." ( :2)
+后向传播与链式法则，参考Figure 1，且注意Jacobian矩阵。
+
++"threshold" ( :2)
+boundary，决策边界法。+
+
+#+begin_quote
+"Since the 1960s we have known that linear classifiers can only carve their
+input space into very simple regions, namely half-spaces separated by a
+hyperplane^{19}." ( :2)
+#+end_quote
+
+自1960年代起，我们已经知道线性分类器只能将它的输入空间划分到非常简单的区域，被称
+之为被超平面分割的半空间。
+
+#+begin_quote
+"At the pixel level, images of two Samoyeds in different poses and in different
+environments may be very different from each other, whereas two images of a
+Samoyed and a wolf in the same position and on similar backgrounds may be very
+similar to each other." ( :2)
+#+end_quote
+
+！！！ (note on p.2)
+
+#+begin_quote
+"The non-linear functions used in neural networks include the rectified linear
+unit (ReLU) \(f(z) = max(0, z)\), commonly used in recent years, as well as the
+more conventional sigmoids, such as the hyberbolic tangent, \(f(z) = (exp(z) -
+exp(-z))/(exp(z) + exp(-z))\) and logistic function logistic, \(f(z) = 1/(1 +
+exp(-z))\)." ( :2)
+#+end_quote
+
+#+begin_quote
+"Once the \(\partial{E}/\partial{z_k}\) is known, the error-derivative for the
+weight \(w_{jk}\) on the connection from unit \(j\) in the layer below is just
+\(y_j \partial{E}/\partial{z_k}\)." ( :2)
+#+end_quote
+
+"could not possibly distinguish the latter two, while putting the former two in
+the same category." ( :3)
+
+#+begin_quote
+"that solves the selectivity-invariance dilemma — one that produces
+representations that are selective to the aspects of the image that are
+important for discrimination, but that are invariant to irrelevant aspects such
+as the pose of the animal." ( :3)
+#+end_quote
+
+"one can use generic non-linear features, as with kernel methods20" ( :3)
+
+"do not allow the learner to generalize well far from the training examples21." ( :3)
+
+"both the selectivity and the invariance of the representation" ( :3)
+
+"As it turns out" ( :3)
+
+事实证明 (note on p.3)
+
+* 后向传播训练多层结构
+#+begin_quote
+"From the earliest days of pattern recognition22,23, the aim of researchers has
+been to replace hand-engineered features with trainable multilayer networks, but
+despite its simplicity, the solution was not widely understood until the mid
+1980s." ( :3)
+#+end_quote
+
+！！！ (note on p.3)
+
+"nothing more than" ( :3)
+
+#+begin_quote
+"The backpropagation equation can be applied repeatedly to propagate gradients
+through all modules, starting from the output at the top (where the network
+produces its prediction) all the way to the bottom (where the external input is
+fed)." ( :3)
+#+end_quote
+
+#+begin_quote
+"To go from one layer to the next, a set of units compute a weighted sum of
+their inputs from the previous layer and pass the result through a non-linear
+function." ( :3)
+#+end_quote
+前向反馈
+
+"half-wave rectifier \(f(z) = max(z,0)\)" ( :3)
+半波整流器？
+
+"smoother" ( :3)
+what's meaning of smoother used in machine learning?
+
+
+"but the ReLU typically learns much faster in networks with many layers" ( :3)
+
+"28" ( :3)
+
+"It was widely thought that learning useful, multistage, feature extractors with
+little prior knowledge was infeasible." ( :3)
+
+"Recent theoretical and empirical results strongly suggest that local minima are
+not a serious issue in general." ( :3)
+
+"29,30" ( :4)
+
+"The researchers intro - duced unsupervised learning procedures that could
+create layers of feature detectors without requiring labelled data." ( :4)
+
+参考31至34 (note on p.4)
+
+#+begin_quote
+"A final layer of output units could then be added to the top of the network and
+the whole deep system could be fine-tuned using standard backpropaga - tion
+33-35 ." ( :4)
+#+end_quote
+
+迁移学习中的微调策略？解决只有有限的标签数据 (note on p.4)
+
++"GPUs" ( :4)使dl研究具有实际意义 (note on p.4)+
+
+#+begin_quote
+"For smaller data sets, unsupervised pre-training helps to prevent overfitting
+40 , leading to significantly better generalization when the number of labelled
+exam - ples is small, or in a transfer setting where we have lots of examples
+for some 'source' tasks but very few for some 'target' tasks." ( :4)
+#+end_quote
+
+迁移算法 (note on p.4)
+
+#+begin_quote
+"There was, however, one particular type of deep, feedforward net - work that
+was much easier to train and generalized much better than networks with full
+connectivity between adjacent layers." ( :4)
+#+end_quote
+
+例如说？ (note on p.4)
+
+* 卷积神经网络
+#+begin_quote
+"ConvNets are designed to process data that come in the form of multiple arrays,
+for example a colour image composed of three 2D arrays containing pixel
+intensities in the three colour channels." ( :4)
+#+end_quote
+
+具有multiple array形式的数据，如灰度图像的2D像素值矩阵 (note on p.4)
+
+#+begin_quote
+"There are four key ideas behind ConvNets that take advantage of the properties
+of natural signals: local connections, shared weights, pooling and the use of
+many layers." ( :4)
+#+end_quote
+
+key point？ (note on p.4)
+
+#+begin_quote
+"Units in a convolu - tional layer are organized in feature maps, within which
+each unit is connected to local patches in the feature maps of the previous
+layer through a set of weights called a filter bank." ( :4)
+#+end_quote
+
+"units" ( :4)
+类似patch (note on p.4)
+
+"this architecture is twofold" ( :4)
+
+"Mathemati - cally, the filtering operation performed by a feature map is a
+discrete convolution, hence the name." ( :4)
+
+hence the name什么意思 (note on p.4)
+
+#+begin_quote
+"Although the role of the convolutional layer is to detect local con - junctions
+of features from the previous layer, the role of the pooling layer is to merge
+semantically similar features into one." ( :4)
+#+end_quote
+
+如何体现 (note on p.4)
+
+"coarse-graining" ( :4)
+
+"A typical pooling unit computes the maximum of a local patch of units in one
+feature map (or in a few feature maps)." ( :4)
+
+取最大值？ (note on p.4)
+
+#+begin_quote
+"Neighbouring pooling units take input from patches that are shifted by more
+than one row or column, thereby reducing the dimension of the representation and
+creating an invariance to small shifts and dis - tortions." ( :4)
+#+end_quote
+
+什么玩意 (note on p.4)
+
+"many natural sig - nals are compositional hierarchies" ( :4)
+
+例如说 (note on p.4)
+
+"The pooling allows representations to vary very little when elements in the
+previ - ous layer vary in position and appearance." ( :4)
+
+什么 (note on p.4)
+
+"in the visual cortex ventral path - way 44" ( :4)
+
+"end-to-end supervised-learning algorithm such as backpropagation" ( :4)
+
+端到端是什么意思 (note on p.4)
+
+"starting with time-delay neural networks for speech recognition 47 and document
+reading 42 ." ( :4)
+最初的卷积神经网络应用，读取支票、光学字符识别与手写识别、对象检测。
+
+"49" ( :4)
+
+* 使用深度卷积网络的图像理解
+#+begin_quote
+"These were all tasks in which labelled data was relatively abun - dant, such as
+traffic sign recognition 53 , the segmentation of biological images 54
+particularly for connectomics 55 , and the detection of faces, text, pedestrians
+and human bodies in natural images 36,50,51,56-58 ." ( :4)
+#+end_quote
+
+application and research (note on p.4)
+
+#+begin_quote
+"Despite these successes, ConvNets were largely forsaken by the mainstream
+computer-vision and machine-learning communities until the ImageNet competition
+in 2012." ( :5)
+#+end_quote
+
+就算在些方面取得进展，仍不能引起放弃该方法的主流社区注意 (note on p.5)
+
+#+begin_quote
+"This success came from the efficient use of GPUs, ReLUs, a new regularization
+technique called dropout 62 , and tech - niques to generate more training
+examples by deforming the existing ones." ( :5)
+#+end_quote
+
+归功于 (note on p.5)
+
+"A recent stunning demonstration combines ConvNets and recurrent net modules for
+the generation of image captions (Fig. 3)." ( :5)
+
+向给定图像生成标语 (note on p.5)
+
+* 分布式表征和语言处理
+"Distributed representations" ( :5)
+
+What's meaning (note on p.5)
+
+#+begin_quote
+"Deep-learning theory shows that deep nets have two different expo - nential
+advantages over classic learning algorithms that do not use distributed
+representations 21 ." ( :5)
+#+end_quote
+
+有两种指数级优势，但是传统的学习算法为什么不会利用分布式表示（表征）呢？ (note on p.5)
+
+"underlying data-generating distribution having an appropriate componential structure" ( :5)
+
+what (note on p.5)
+
+"(for example, 2 n combinations are possible with n binary features) 68,69 ." ( :5)
+
+what (note on p.5)
+
+"70" ( :5)
+
+嘿，指数爆炸吧 (note on p.5)
+
+"Each word in the context is presented to the network as a one-of-N vector, that
+is, one component has a value of 1 and the rest are 0." ( :6)
+
+what (note on p.6)
+
+"micro-rules" ( :6)
+
+what (note on p.6)
+
+"27" ( :6)
+
+"Vector representations of words learned from text are now very widely used in
+natural language applications 14,17,72-76 ." ( :6)
+
+向量表示是NLP的核心竞争力？ (note on p.6)
+
+"The issue of representation lies at the heart of the debate between the
+logic-inspired and the neural-network-inspired paradigms for cognition." ( :6)
+在逻辑启发和神经网络启发范式的争辩核心是表征（representation）问题，联结主义和符
+号主义，该节内容集大成没有例子很难理解。 (note on p.6)
+
+"71" ( :6)
+
+"distributed representations: it was based on counting frequencies of
+occurrences of short symbol sequences of length up to N (called N-grams)." ( :6)
+
+What's this? The definition of N-grams. (note on p.6)
+
+#+begin_quote
+"N-grams treat each word as an atomic unit, so they cannot generalize across
+semantically related sequences of words, whereas neural language models can
+because they associate each word with a vector of real valued features, and
+semantically related words end up close to each other in that vector space (Fig.
+4)." ( :6)
+#+end_quote
+
+N-grams把每个单词作为一个单元对待，所以they不能在语义上相关的词组序列进行泛化，
+然而神经语言模型可以，是因为they将每个单词与实数值特征的向量关联起来，并且语义相
+关的词组最终会在向量空间中相互靠拢。
+
+* 循环神经网络
+"For tasks that involve sequential inputs, such as speech and language, it is
+often better to use RNNs (Fig. 5)." ( :6)
+
+What type of input can i know? (note on p.6)
+
+#+begin_quote
+"When we consider the outputs of the hidden units at different discrete time
+steps as if they were the outputs of different neurons in a deep multilayer
+network (Fig. 5, right), it becomes clear how we can apply backpropagation to
+train RNNs." ( :6)
+#+end_quote
+
+什么鬼 (note on p.6)
+
+#+begin_quote
+"RNNs are very powerful dynamic systems, but training them has proved to be
+problematic because the backpropagated gradients either grow or shrink at each
+time step, so over many time steps they typically explode or vanish 77,78 ." (
+:6)
+#+end_quote
+
+虽然是一个强力的动态系统，但是在训练方面还是被证明是一个难题，因为bp梯度在每一个
+time step要么增大，要么缩小，所以对许多time steps而言通常梯度爆炸或者梯度消失。
+
+"Thanks to advances in their architecture 79,80 and ways of training them 81,82 ," ( :6)
+
+喵喵喵 (note on p.6)
+
+#+begin_quote
+"If a particular first word is chosen from this distribution and provided as
+input to the decoder network it will then output a probability dis - tribution
+for the second word of the translation and so on until a full stop is chosen
+17,72,76 ." ( :6)
+#+end_quote
+
+#+begin_quote
+"this raises serious doubts about whether understanding a sen - tence requires
+anything like the internal symbolic expressions that are manipulated by using
+inference rules." ( :6)
+#+end_quote
+
+这似乎与常识相反 (note on p.6)
+
+"simultaneous analogies" ( :6)
+
+what's meaning? (note on p.6)
+
+"The same parameters (matrices U , V , W ) are used at each time step." ( :7)
+
+每一时间步骤内都使用同样的参数矩阵 (note on p.7)
+
+#+begin_quote
+"The backpropagation algorithm (Fig. 1) can be directly applied to the
+computational graph of the unfolded network on the right, to compute the
+derivative of a total error (for example, the log-probability of generating the
+right sequence of outputs) with respect to all the states s t and all the
+parameters." ( :7)
+#+end_quote
+
+#+begin_quote
+"Although their main purpose is to learn long-term dependencies, theoretical and
+empirical evidence shows that it is difficult to learn to store information for
+very long78." ( :7)
+#+end_quote
+
+what? 長期依賴是什麼？ (note on p.7)
+
+#+begin_quote
+"The first proposal of this kind is the long short-term memory (LSTM) networks
+that use special hidden units, the natural behaviour of which is to remember
+inputs for a long time79." ( :7)
+#+end_quote
+
+LSTM是爲了解決RNN的短處才提出來的嗎？ (note on p.7)
+
+#+begin_quote
+"A special unit called the memory cell acts like an accumulator or a gated leaky
+neuron: it has a connection to itself at the next time step that has a weight of
+one, so it copies its own real-valued state and accumulates the external signal,
+but this self-connection is multiplicatively gated by another unit that learns
+to decide when to clear the content of the memory." ( :7)
+#+end_quote
+
+LSTM的原理，但是gated leaky neuron是什麼意思？ (note on p.7)
+
+"time step87" ( :7)
+
+time step是一个时间单位 (note on p.7)
+
+"the sequence of characters in the transcription" ( :7)
+
+这是什么？ (note on p.7)
+
+"related forms of gated units" ( :7)
+
+gated units should be gated recurrent unit? (note on p.7)
+
+"encoder and decoder networks" ( :7)
+
+另一种结构 (note on p.7)
+
+"17,72,76" ( :7)
+
+#+begin_quote
+"Over the past year, several authors have made different proposals to augment
+RNNs with a memory module. Proposals include the Neural Turing Machine in which
+the network is augmented by a 'tape-like' memory that the RNN can choose to read
+from or write to88, and memory networks, in which a regular network is augmented
+by a kind of associative memory89." ( :7)
+#+end_quote
+
+过一年里（13-14）提出的两种方法，使用内存模块或者记忆模块来增强RNN（注意with的使
+用）。
+
+#+begin_quote
+"Beyond simple memorization, neural Turing machines and memory networks are
+being used for tasks that would normally require reasoning and symbol
+manipulation." ( :7)
+#+end_quote
+
+结合最近学术界两个流派争论的事件一起看，符号派和联结派。
+
+"Neural Turing machines can be taught 'algorithms'." ( :7)
+！！！
+
+#+begin_quote
+"Among other things, they can learn to output a sorted list of symbols when
+their input consists of an unsorted sequence in which each symbol is accompanied
+by a real value that indicates its priority in the list88." ( :7)
+#+end_quote
+
+所以之前听说可以用来学习的算法的案例就是这个？ (note on p.7)
+
+#+begin_quote
+"Memory networks can be trained to keep track of the state of the world in a
+setting similar to a text adventure game and after reading a story, they can
+answer questions that require complex inference90. In one test example, the
+network is shown a 15-sentence version of the The Lord of the Rings and
+correctly answers questions such as "where is Frodo now?"89." ( :7)
+#+end_quote
+
+Applications (note on p.7)
+
+* 深度学习的未来
+"91-98" ( :7)
+
+无监督学习的扩展阅读 (note on p.7)
+
+#+begin_quote
+"Human vision is an active process that sequentially samples the optic array in
+an intelligent, task-specific way using a small, high-resolution fovea with a
+large, low-resolution surround." ( :7)
+#+end_quote
+
+#+begin_quote
+"We expect much of the future progress in vision to come from systems that are
+trained end-toend and combine ConvNets with RNNs that use reinforcement learning
+to decide where to look." ( :7)
+#+end_quote
+
+未来发展的展望 (note on p.7)
+
+#+begin_quote
+"Systems combining deep learning and reinforcement learning are in their
+infancy, but they already outperform passive vision systems99 at classification
+tasks and produce impressive results in learning to play many different video
+games100." ( :7)
+#+end_quote
+
+"76,86" ( :7)
+
+#+begin_quote
+"Ultimately, major progress in artificial intelligence will come about through
+systems that combine representation learning with complex reasoning. Although
+deep learning and simple reasoning have been used for speech and handwriting
+recognition for a long time, new paradigms are needed to replace rule-based
+manipulation of symbolic expressions by operations on large vectors101." ( :7)
+#+end_quote
+
+what's representation learning and complex reasoning? and convential symbolic
+reasoning? (note on p.7)

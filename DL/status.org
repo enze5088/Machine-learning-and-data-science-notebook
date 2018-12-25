@@ -1,0 +1,8 @@
+#+TITLE: Status of Edition
+#+DATE:  <2018-12-25 Tue>
+
+| Note Title                                                                       | Status        |
+|----------------------------------------------------------------------------------+---------------|
+| Deep Learning Review                                                             | In Processing |
+| Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation | In Processing |
+|                                                                                  |               |
