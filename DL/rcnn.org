@@ -1,82 +1,327 @@
 #+TITLE:     Note: Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation
 #+AUTHOR:    MoozIiSP
 #+DATE:      <2018-12-25 Tue>
-#+SETUPFILE: theme-readtheorg.setup
+#+STARTUP:   indent latexpreview
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/setup/theme-readtheorg.setup
 
 * TODO Summary
+在04-14年期间，视觉识别任务大多数采用SIFT和方向梯度直方图（Histogram of oriented
+gradient，HOG）。SIFT和HOG方法都是块状（blockwise）方向直方图，是一种我们可以大
+致与V1[fn:3]中的复合细胞相关联的特征。V1是灵长类视觉通路的第一个皮层区域。视觉中
+识别过程，是一个多层次、多阶段的过程，从这些过程中得到一些用于识别的重要信息。
+
+Fukushima的 *神经认知机* （neocognitron），是一种受到生物学启发的层次和*平移不变性
+（shift-invariant）*的模型，用于模式识别，是在这一过程中最早的尝试。然而，神经感
+知机缺少一种监督训练算法。LeCun等人，为此通过展示经由后向传播算法的随机梯度下降
+（Stochastic gradient descent, SGD）可以训练卷积神经网络（Convolutional neural
+networks, CNNs），来补上这个缺口。而卷积神经网络是一类可以扩展神经认知机的模型。
+
+虽然CNNs在 *1990s* 年代使用广泛，但是随着支持向量机（Support Vector Machine, SVM）
+的出现，该方法显得过时，尤其是在计算机视觉领域。在 *2012* 年，Krizhevsky等人，在
+LuCun CNN的基础上利用RLU（Recitifying non-linearites Unit）和“dropout”正则化，
+来展示在ILSVRC上更高的图像分类准确率，这重新激起了对CNNs的兴趣。
+
+你说图像分类结果的性能这么好，那在多大程度上我们可以将CNN的成果普及到目标检测呢？
+本文是第一个展示CNN在戏剧上引导更好的目标检测性能，并与基于简单的HOG-like特征的
+系统进行比较。当然实现这个需要解决两个问题：
+
+1. 如何使用深度网络定位目标；
+2. 如何使用一小部分经过标注的数据来训练高容量模型（high-capacity mode）[fn:1][fn:2]。
+
+** How to localize one or many objects within an image?
+
+*** 定位框架化
+一种方法是将定位框架化为一个回归问题，不过与本文同一时期开工的Szegedy等人的工作
+表明这个策略在实践中进展不顺。
+
+*** 滑动窗口检测
+另一种方法是构建一个滑动窗口检测器，不过CNNs已经使用了这个方法至少20年，一般是在
+有限目标类别上，如人脸和行人。为了维持 *高空间分辨率（high spatial resolution）*
+这些CNNs一般只有两个卷积和池化层，但是，在考虑采用滑动窗口方法的情形下，本文的网
+络结构变得复杂了，有五个卷积层，并且用非常大的感受域（Receptive fields）
+（195x195像素）和步长（32x32像素）来处理输入图像，这使在滑动窗口范式中精确定位成
+为了一个开放性的技术挑战。
+
+相反地，如Gu等人所讨论的，我们通过在“recognition using regions”范式中操作来解
+决CNN的定位问题。测试时，本文方法对输入图像生成了大约2000类别无关的区域候选，使
+用CNN从每个候选中提取固定长度的特征向量，并使用 *类别特定线性SVMs* 对每一个区域
+进行分类。我们使用 *仿射图像变形（affine image warping）* 技术，计算来自每个区域
+候选的固定大小的CNN输入，忽略区域的形状。图1展示了本文方法的概要，并强调了本文的
+一些结果。因此，本文系统将区域候选与CNNs相结合，并取名为R-CNN（Regions with CNN
+features）。
+
+** How to train a high-capacity model with only a small quantity of annotated detection data?
+就第二问题，所面临的挑战有：
+1. 标记的数据稀缺；
+2. 当前，没有足够的数据来训练一个大规模CNN。
+
+解决这个问题的传统方案使用无监督的预训练，其次进行有监督的微调。本文的第二个主要
+贡献是展示对大型辅助数据集进行有监督的预训练，其次对小数据集进行特定领域的微调。
+当数据稀缺的时候，对学习高容量CNNs，这是一个有效的范式。在本文实验中，对检测进行
+微调可以将平均准确率提高到8个百分点。经过微调之后，在居于VOC2010数据集上，本文系
+统相较于高度调整的基于HOG的DPM（Deformable part model）的33%平均准确率，实现了
+54%的平均准确率。
+
+
+本文系统也相当高效。只有特定类的计算是一个合理程度上小的矩阵向量积和贪心的非极大
+抑制(non-maximum suppression)。这种计算属性来自于所有类别共享的特征，并且与先前
+使用的区域特征相比也是低两个数量级维度（cf. [32]）。
+
+*HOG-like* 特征的一项优点就是它们的简单：很容易理解它们所携带的信息（虽然[34]说
+我们的直觉可能并不可靠。我们可以洞察CNN所习得的表征吗？或许具有超过0.54亿的稠密
+连接层是关键所在？并不是。我们发现CNN中94%的参数都可以被移除，与之相对应的代价也
+只是识别准确率有平均程度的下降。相反，通过探查网络中的单元，我们发现卷积层学习到
+了各式各样丰富的特征（如图3）。
+
+理解本文方法中的失败模式也是改进这个方法的关键，所以我们也对使用Hoiem等人的检测
+分析工具得到的结果进行汇报。作为该分析的直接结果，我们证明了简单的边界框回归方法
+显着减少了错误定位，这是主要的错误模式。
+
+在开发技术细节之前，我们注意到因为R-CNN对区域的操作，所以很自然地将它扩展到语义
+分割任务。通过微小的调整，我们也在PASCAL VOC分割任务上实现了最前沿的结果，基于
+VOC2011测试集取得了47.9%的平均分割准确率。
+
+** R-CNN目标检测
+我们的目标检测系统由三个模块组成：
+1. 第一个生成类别无关区域候选，这些候选（proposals）定义了对检测器可用的一组候选
+   （candidate）检测。
+2. 第二个模块是大规模卷积神经网络，从每个区域提取固定长度的特征向量。
+3. 第三个模块是一组特定类别的线性SVMs。
+
+内容安排如下：
+1. 每个模块是为什么这样设计；
+2. 它们的测试用例；
+3. 再详细阐述它们所学到的参数如何；
+4. PASCAL VOC 2010-12的性能表现。
+
+*** 模型设计
+
+**** 候选区域
+最近很多论文都提供了生成类别无关区域候选的方法。例如，objectness [1]，selective
+search [32]，category-independent object proposals [11]，constrained parametric
+min-cuts (CPMC) [5]，multi-scale combinatorial grouping [3]，以及Cireşan等人通过
+将CNN应用到规则间隔的方形作物来检测有丝分裂细胞，这是候选区域的一种特殊案例。然
+而对于特殊候选区域方法，R-CNN是不可知的，我们使用选择搜索算法（selective search）
+来与先前的检测工作[32, 35]做一个对照比较（controlled comparison）。
+
+**** 特征提取
+我们使用由Keizhevsky等人描述的基于Caffe实现的CNN，从每个候选区域中提取4096-维度
+的特征向量。通过五卷积层和两全连接层，向前传播一个减去均差（mean-subracted）的
+227x227彩色图像来计算。更多的网络结构细节参见[21,22]。
+
+
+为了对每个候选区域计算特征，我们必须先将该区域的图像数据转换成一种与CNN相互兼容
+的形式（Krizhevsky等人的CNN结构要求固定227x227像素大小的输入）。在任意形状区域的
+多种可能的转变中，我们选择最简单的。不管候选区域的大小和纵横比如何，我们将环绕它
+的紧凑边界盒中的所有像素变形到所需要的大小。
+
+在变形之前，我们扩展紧凑边界盒，以至于在变形尺寸上，围绕原始盒的变形图像的上下文，
+正好有p个像素（我们使用\(p=16\)）。 图2展示了变形训练区域的随机抽样。补充材料讨
+论了变形的其他方法。
+
+*** 测试时间检测
+我们在测试图像上使用选择搜索算法，来提取大约2000候选区域（本文所有实验使用选择搜
+索算法的“fast mode”）。我们对每一个区域进行变形，并通过CNN前向传播它，以便读取
+所需层的特征。那么，对于每一个类别，我们使用为该类训练的SVM，对提取的特征向量进
+行计分。给出图像中所有已计分的区域，我们分别对每一个类别运用贪心非极大抑制
+（greedy non-maximum suppression），如果具有交叉结合（IoU）重叠且选定区域的计分
+相比学习阈值更高，则拒绝该区域。
+
+**** 运行时分析
+两个属性可以使检测高效：
+1. 所有CNN参数在所有类别中都是共享的；
+2. 当与其他常见方法，诸如视觉字包（ *bag-of-visual-word* ）编码的空间金字塔，相
+   比较时，CNN计算的特征向量都是低维的。例如，在UVA检测系统中所使用的特征比我们
+   的要大两个数量级（360k vs. 4k-dimensional）。
+
+共享的结果就是计算候选区域和特征的时间消耗（在GPU上的速度为13s/image，CPU为
+53s/image）都被分摊到所有类别上。只有特定类的计算是在特征、SVM权重和非极大抑制之
+间的点积。实践中，图像的所有点积都被分批到单个矩阵-矩阵积（matrix-matrix product）
+中。这个特征矩阵一般是\(2000 \times 4096\)大小，并且SVM的权重矩阵是\(4096 \times
+N\)大小，这里的N代表类别的数量。
+
+本分析表明R-CNN在不求助如hashing等的近似技术（approximate techniques）的帮助下，
+可以扩展到数千个目标类别。即时有100k类别，在现代多核CPU上，矩阵乘积的结果也只是
+花费10s。这个高效的方法不仅仅是使用候选区域和特征共享的结果。由于高纬度特征，UVA
+系统会慢两个数量级，同时需要134GB内存才能存储1000k线性预测器，而我们的低纬度特征
+仅需要1.5GB。
+
+将R-CNN与Dean等人最近基于使用DPM和hashing的可扩展检测[8]的工作进行对比也很有趣。
+他们报告说，当引入10k牵引器（distractor）类别时，每张图像的运行时间为5分钟，VOC
+2007的平均准确率约为16%。使用我们的方法，10k检测器可以在CPU上运行大约一分钟，因
+为没有近似值，mAP将保持在59％（第3.2节）。
+
+*** 训练
+
+**** 有监督预训练
+我们在具有图像级注释的大型辅助数据集（ILSVRC 2012）上有条理地预训练CNN（即，没有
+边界框标签）。 使用开源Caffe CNN库[21]进行预训练。 简而言之，我们的CNN几乎与
+Krizhevsky等人的表现相符。 [22]，在ILSVRC 2012验证集上获得高出2.2个百分点的前1个
+错误率。 这种差异是由于培训过程的简化。
+
+**** 特定领域微调
+为了使我们的CNN适应新的任务（检测）和新的领域（扭曲的VOC窗口），我们继续使用来自
+VOC的扭曲区域提议的CNN参数的随机梯度下降（SGD）训练。 除了用随机初始化的21路分类
+层（对于20个VOC类加背景）替换CNN的ImageNet特定的1000路分类层，CNN架构保持不变。
+我们将所有地区建议的处理距离≥0.5IoU，并使用地面实况框作为该框的正面，其余为负数。
+我们以0.001的学习率（初始预训练率的1/10）开始SGD，这允许微调进行而不破坏初始化。
+在每次SGD迭代中，我们统一采样32个正窗口（在所有类别上）和96个背景窗口，构建一个
+128的小批量。我们将采样偏向正窗口，因为它们与背景相比非常罕见。
+
+**** 目标类别分类器
+考虑训练二元分类器来检测汽车。很明显，紧紧包围汽车的图像区域应该是一个积极的例子。
+同样，很明显，与汽车无关的背景区域应该是一个反面的例子。不太清楚的是如何标记与汽
+车部分重叠的区域。我们使用IoU重叠阈值解决此问题，低于该阈值将区域定义为负数。通
+过{0,0.1，...的网格搜索选择重叠阈值0.3。 。 。 ，0.5}在验证集上。我们发现仔细选
+择此阈值非常重要。将其设置为0.5，如[32]所示，将mAP降低了5个点。同样，将其设置为0
+会使mAP降低4个点。正例被简单地定义为每个类的基础真值边界框。
+
+一旦提取了特征并应用了训练标签，我们就会优化每个类的一个线性SVM。由于训练数据太
+大而无法记忆，我们采用标准的硬负采矿方法[14,30]。硬负的采矿很快收敛，实际上，只
+有一次通过所有图像后，mAP停止增加。在补充材料中，我们讨论为什么在微调与SVM训练中
+对正面和负面示例的定义不同。我们还讨论了为什么有必要训练检测分类器而不是简单地使
+用来自微调CNN的最终层（fc8）的输出。
+
+*** PASCAL VOC 2010-12 结果
+遵循PASCAL VOC最佳实践[12]，我们验证了VOC 2007数据集的所有设计决策和超参数（第
+3.2节）。对于VOC 2010-12数据集的最终结果，我们对VOC 2012列车上的CNN进行了微调，
+并优化了我们在VOC2012 trainval上的检测SVM。我们仅针对两种主要算法变体（使用和不
+使用边界框回归）将测试结果提交给评估服务器一次。表1显示了VOC 2010的完整结果。
+
+削弱我们针对四个强基线的方法，包括SegDPM [15]，它将DPM探测器与语义分割系统的输出
+相结合[4]，并使用额外的探测器间上下文和图像分类器重新校正。最相关的是Uijlings等
+人的UVA系统。 [32]，因为我们的系统使用相同的区域提议算法。为了对区域进行分类，他
+们的方法构建了一个四级空间金字塔，并用密集采样的SIFT，Extended OpponentSIFT和
+RGB-SIFT描述符填充它，每个矢量用4000字的码本量化。使用直方图交叉核SVM执行分类。
+与其多特征，非线性核SVM方法相比，我们实现了mAP的大幅提升，从mAP的35.1％到53.7％，
+同时也更快（第2.2节）。我们的方法在VOC 2011/12测试中实现了类似的性能（53.3％mAP）。
+
+
+** 可视化，解剖和错误模式
+*** 特征可视化
+第一层过滤器可以直接显示，易于理解[22]。它们捕捉定向边缘和对手颜色。了解后续层更
+具挑战性。 Zeiler和Fergus在[36]中提出了一种视觉上具有吸引力的反卷积方法。我们提
+出了一种简单（和互补）的非参数方法，可直接显示网络学到的内容。我们的想法是在网络
+中挑出一个特定的单元（特征）并使用它就好像它本身就是一个物体探测器。也就是说，我
+们计算单位在大量保留区域提案（约1000万）上的激活，从最高到最低激活对提案进行排序，
+执行非最大抑制，然后显示得分最高的区域。我们的方法通过准确显示它所触发的输入，让
+所选单元“自己说话”。我们避免求平均值以便查看不同的视觉模式并深入了解由单元计算
+的不变性。我们从图层池5可视化单元，这是网络的第五个和最后一个卷积层的最大输出。
+pool5特征图是6×6×256 = 9216维。忽略边界效应，每个pool5单元在原始227×227像素输
+入中具有195×195像素的感受野。中央泳池5单元几乎具有全局视图，而靠近边缘的一个单
+元具有较小的剪切支撑。
+
+图3中的每一行显示了我们在VOC 2007 trainval上进行微调的CNN中的pool5单元的前16次激
+活。 256个功能独特单元中的六个可视化（补充材料包括更多）。选择这些单元以显示网络
+学习的代表性样本。 在第二行中，我们看到一个在狗脸和点阵列上发射的单位。 对应于第
+三行的单位是红色斑点检测器。 还有用于人脸的探测器和更抽象的图案，例如带有窗户的
+文本和三角形结构。 该网络似乎学习了一种表示，该表示将少量的类调整特征与形状，纹
+理，颜色和材料属性的分布式表示相结合。 随后的完全连接层fc6具有对这些丰富特征的大
+量组合进行建模的能力。
+
+*** 剖析
+
+**** Performance layer-by-layer, without fine-tuning
+为了了解哪些层对于检测性能至关重要，我们分析了CNN最后三层中每个层的VOC2007数据集
+的结果。 Layer pool5在3.1节中简要描述。最后两层总结如下。图层fc6完全连接到pool5。
+为了计算特征，它将4096×9216权重矩阵乘以pool5特征图（重新形成为9216维向量），然
+后添加偏差向量。该中间矢量是分量半波整流的（x←max（0，x））。层fc7是网络的最后
+一层。它通过将由fc6计算的特征乘以4096×4096权重矩阵，并类似地添加偏置矢量并应用
+半波整流来实现。
+
+我们首先查看CNN的结果，而不对PASCAL进行微调，即所有CNN参数仅在ILSVRC 2012上进行
+了预训练。逐层分析性能（表2第1-3行）显示fc7的特征比fc6的特征更糟糕。这意味着可以
+在不降低mAP的情况下移除29％或约1680万个CNN参数。更令人惊讶的是，即使仅使用6％的
+CNN参数计算pool5特征，同时移除fc7和fc6也会产生相当好的结果。 CNN的大部分代表性力
+量来自其卷积层，而不是来自更大的密集连接层。该发现表明，通过仅使用CNN的卷积层，
+在HOG的意义上计算任意大小的图像的密集特征图的潜在效用。这种表示可以在pool5特征之
+上实现滑动窗口检测器，包括DPM。
+
+**** Performance layer-by-layer, with fine-tuning
+我们现在看看我们的CNN的结果，他们对VOC 2007 trainval的参数进行了微调。 改进正在
+进行（表2第4-6行）：微调将mAP提高8.0个百分点至54.2％。 fc6和fc7的微调提升比pool5
+大得多，这表明从ImageNet学到的pool5特性是通用的，并且大多数改进都是从学习特定领
+域的非线性分类器获得的。
+
+**** Comparison to recent feature learning methods
+在PAS-CALVOC检测中已经尝试了相对较少的特征学习方法。 我们看看最近基于可变形零件
+模型的两种方法。 作为参考，我们还包括基于标准HOG的DPM的结果[17]。
+
+第一个DPM特征学习方法DPM ST [25]利用“草图标记”概率的直方图增强HOG特征。直观地，
+草图标记是通过图像块中心的轮廓的紧密分布。通过随机森林在每个像素处计算草图标记概
+率，该随机森林被训练为将35×35像素斑块分类为150个草图标记或背景之一。第二种方法
+DPMHSC [27]用稀疏码（HSC）的直方图替换了HOG。为了计算HSC，使用100×7×7像素（灰
+度）原子的学习字典在每个像素处求解稀疏代码激活。由此产生的激活以三种方式（全波和
+两波）进行整流，空间汇集，单位？ 2归一化，然后进行功率变换（x←sign（x）| x |α）。
+所有R-CNN变体都强大地优于三个DPM基线（表2第8-10行），包括使用特征学习的两个。与
+仅使用HOG功能的DPM的最新版本相比，我们的mAP高出20多个百分点：54.2％对比33.7％ -
+相对改善率为61％。 HOG和草图标记的组合比单独的HOG产生2.5 mAP点，而HSC比HOG提高4
+mAP点（内部与其私有DPM基线进行比较 - 都使用非公开实现的DPM，其表现不如开源版本
+[17]） 。这些方法分别实现29.1％和34.3％的mAP。
+
+*** 误差分析检测
+我们应用了Hoiem等人的优秀检测分析工具。 [20]为了揭示我们方法的错误模式，了解微调
+如何改变它们，以及了解我们的错误类型与DPM的比较。 分析工具的完整摘要超出了本文的
+范围，我们鼓励读者参考[20]以了解一些更精细的细节（例如“标准化AP”）。 由于分析
+最好在相关图的上下文中被吸收，因此我们在图4和图5的标题内进行讨论。
+
+*** 边界盒回归
+基于错误分析，我们实现了一种简单的方法来减少本地化错误。 受DPM [14]中使用的边界
+框回归的启发，我们训练线性回归模型，以根据选择性搜索区域提议的pool5特征预测新的
+检测窗口。 补充材料中提供了完整的详细信息。 表1，表2和图4中的结果表明，这种简单
+的方法修复了大量错误定位的检测，将mAP提高了3到4个点。
+
+** 语义分割
+区域分类是语义分割的标准技术，允许我们轻松地将R-CNN应用于PASCAL VOC分段挑战。为
+了便于与当前领先的语义分段系统（称为“二阶池”的O2P）进行直接比较[4]，我们在他们
+的开源框架内工作。 O2P使用CPMC为每个图像生成150个区域提议，然后使用支持向量回归
+（SVR）预测每个类别的每个区域的质量。他们的方法的高性能是由于CPMC区域的质量和多
+种特征类型的强大二阶汇集（SIFT和LBP的丰富变体）。我们还注意到Farabet等人。 [13]
+最近在使用CNN作为多尺度每像素分类器的几个密集场景标记数据集（不包括PAS-CAL）上展
+示了良好的结果。我们遵循[2,4]并扩展PASCAL分段训练集以包括Hariharan等人提供的额外
+注释。 [19]。设计决策和超级参数在VOC 2011验证集上进行了交叉验证。最终测试结果仅
+评估一次。
+
+- CNN features for segmentation :: 我们评估了CPMC区域计算特征的三种策略，所有这
+     些策略都是通过将区域周围的矩形窗口扭曲到227×227来开始的。第一种策略（完全）
+     忽略了区域的形状并直接在扭曲的情况下计算CNN特征 窗口，就像我们检测的那样。
+     但是，这些功能会忽略该区域的非矩形形状。 两个区域可能具有非常相似的边界框，
+     而重叠非常少。 因此，第二个策略（fg）仅在区域的前景掩模上计算CNN特征。 我们
+     用平均输入替换背景，以便在平均牵引后背景区域为零。 第三个策略（完整+ fg）简
+     单地连接完整和fg功能; 我们的实验验证了它们的互补性
+- Results on VOC 2011 ::  表3显示了我们在VOC 2011验证集上与O2P相比的结果摘要。
+     （有关完整的每类别结果，请参阅补充材料。）在每个特征计算策略中，层fc6总是优
+     于fc7，以下讨论涉及fc6特征。 fg策略稍微优于完整，表明屏蔽区域形状提供更强的
+     信号，与我们的直觉相匹配。然而，full + fg实现了47.9％的平均准确度，我们的最
+     佳结果是4.2％（也略微优于O2P），表明即使给出fg特征，完整功能提供的上下文也
+     是非常有用的。值得注意的是，在我们的完整+fg功能上训练20个SVR在单个核心上花
+     费一个小时，而在O2P功能上训练需要10个小时。
+
+     在表4中，我们提供了VOC 2011测试集的结果，将我们表现最佳的方法fc6（full + fg）
+     与两个强基线进行了比较。我们的方法在21个类别中的11个中实现了最高的分割准确
+     度，并且最高的总分割准确度为47.9％，在各类别之间取平均值（但在任何合理的误
+     差范围内可能与O2P结果相关）。通过微调可以实现更好的性能。
+
+** 结论
+近年来，物体检测性能停滞不前。性能最佳的系统是复杂的集合，将多个低级图像特征与来
+自物体检测器和场景分类器的高级上下文相结合。本文介绍了一种简单且可扩展的物体检测
+算法，与PASCAL VOC 2012上的最佳结果相比，可提供30％的相对改进。
+
+我们通过两个见解实现了这一表现。第一种是将高容量卷积神经网络应用于自下而上的区域
+提议，以便对对象进行本地化和分割。第二个是在标记的训练数据稀缺时训练大型CNN的范
+例。我们表明，对于具有丰富数据（图像分类）的辅助任务，通过监督来预训练网络是非常
+有效的，然后针对数据稀缺（检测）的目标任务微调网络。我们推测，“监督的预训练/领
+域特定的微调”范例对于各种数据稀缺的视力问题将非常有效。
+
+最后，我们指出通过结合使用计算机视觉和深度学习（自下而上区域提议和卷积神经网络）
+的经典工具来实现这些结果是很重要的。这两者不是反对科学探究的对象，而是自然而不可
+避免的合作伙伴。
 
 * Annotations
 
-** 著论
-一个生物上的问题。
+** 绪论
 
-#+begin_quote
-SIFT and HOG are blockwise orientation histograms,
-a representation we could associate roughly with complex
-cells in V1, *the first cortical area in the primate visual pathway* .
-#+end_quote
-
-主要视觉路径的第一个皮层区域？
-
-视觉系统具有将外部世界的二维投射重构为三维世界的能力。
-
-+文中的mAP一词，为"mean average precision"的缩写形式（其实这并不是很重要）。+
-
-"shift-invariant model"是指什么特性呢？
-
-#+begin_quote
-The neocognitron, however, lacked a supervised training algorithm.
-#+end_quote
-
-神经认知机？虽然很棒，但是缺少一种监督训练算法吗？也就是说，没有一种判定模型好坏
-的标准？
-
-"stochastic gradient descent" 随机梯度下降是？
-
-#+begin_quote
-CNNs saw heavy use in the 1990s (e.g., [24]), but then fell out of fashion,
-particularly in computer vision, with the rise of support vector machines.
-#+end_quote
-
-虽然在90年代，CNN使用广泛，但是随着SVM的出现而显得过时，尤其是在计算机视觉领域。
-是如此吗？
-
-#+begin_quote
-The central issue can be distilled to the following: To what extent do the CNN
-classification results on ImageNet *generalize* to object detection results on the
-PASCAL VOC Challenge?
-#+end_quote
-
-模型的泛化能力，也就是将模型运用在新的数据集上是否仍有良好的性能表现。
-
-"category-specific linear SVMs."
-特定类别的线性支持向量机大概是SVM中的一种吧？
-
-"The conventional solution to this problem is to use unsupervised pre-training,
-followed by supervised fine-tuning (e.g., [29])."，参考论文29。
-
-"that supervised pretraining on a large auxiliary dataset (ILSVRC), followed by
-domain-specific fine-tuning on a small dataset (PASCAL),"，类似迁移学习啦，那么
-什么是迁移学习呢？
-
-"HOG-like"，定向梯度的直方图特征。
-
-#+begin_quote
-localizing objects with a deep network and training a high-capacity model with
-only a small quantity of annotated detection data.
-#+end_quote
-
-用深度网络来定位目标，又用只有小量标注数据来训练高容量模型到底是什么鬼？那个高容
-量模型是什么啊？高容量模型大概是指模型参数，具体的内容可以进一步参考这里[fn:1][fn:2]。
-
-*** 检测方法
-不像图像分类，检测需要在图像中对目标进行定位。
-
-**** 帧定位
-"One approach *frames localization* as a regression problem"，所以帧定位也被作为一
-个回归问题咯？
-
-**** 滑动窗口检测
+*** 滑动窗口检测
 "sliding-window detector"，滑动窗口检测，所以针对于之前的那个织物图像的瑕疵检测
 可以提出更进一步的改进。首先，从直觉上，感受器（现在还不知道，先借用这个名词）的
 视野大小（滑窗大小）以及视野中有效信息都会影响检测效果，例如说ResNet56网络是接受
@@ -84,117 +329,19 @@ only a small quantity of annotated detection data.
 影响图像的识别呢？因为主要是在输入和标签上做个映射，那么无关的内容或者上下文会影
 响到检测效果吧（大误）。
 
-#+begin_quote
-CNNs have been used in *this way* for at least two decades, typically on
-constrained object categories, such as faces [28, 33] and pedestrians [29].
-#+end_quote
-
-首先，该论文写于2014年，所以CNN已经这样使用（构建一个滑动窗口检测器）至少20年了，
-一般在有限目标分类上。
-
-#+begin_quote
-*maintain high spatial resolution*, these CNNs typically only have two
-convolutional and pooling layers.
-#+end_quote
-
-为了维持高空间分辨率，这些CNNs一般只有两个卷积层和池化层。
-
-"receptive fields"，感知域。
-
-"an open technical challenge"，什么叫做开放性的技术挑战？
-
-"affine image warping"，仿射图像扭曲？
-
+*** 图一注解
 #+begin_quote
 Figure 1 presents an overview of our method and highlights some of our
 results.
 #+end_quote
 
-之后，再把图片奉上。这里是总结性质的图。图中，给定一个输入图像，从图像中提取大约
-2k的region proposals，并扭曲到CNN模型所接受的尺寸，接着丢给分类器分类。
+这里是总结性质的图。图中，给定一个输入图像，从图像中提取大约2k的区域候选，并扭曲
+到CNN模型所接受的尺寸，接着丢给分类器分类。
 
-#+begin_quote
-The only class-specific computations are a reasonably small *matrix-vector
-product* and *greedy non-maximum suppression*.
-#+end_quote
-
-唯一的（？）特定类计算是相当小（reasonably small）的矩阵向量积和贪婪非最大抑制什
-么玩意。
-
-"(cf. [32])."，之前使用的局部特征是什么？参考论文32。
-
-#+begin_quote
-Can we gain insight into the representation learned by the CNN? Perhaps the
-densely connected layers, with more than 54 million parameters, are the key?
-#+end_quote
-
-我们可以深入了解CNN学习的表征吗？或许拥有超过54百万参数的稠密连接层就是关键？那
-么神经网络中的参数（结构）如何工作的？
-
+*** 可视化分析工具
 "detection analysis tool of Hoiem et al."，来自Hoiem的检测分析工具。
 
-#+begin_quote
-As an immediate consequence of this analysis, we demonstrate that a simple
-bounding box regression method significantly reduces mislocalizations, which are
-the dominant error mode.
-#+end_quote
-
-从错误模式中，得出简单的边界盒回归方法可以显著地减少错误定位，而错误定位是主要的
-错误模式。
-
 ** 使用R-CNN的目标检测
-#+begin_quote
-In this section, we present our design decisions for each module, describe their
-test-time usage, detail how their parameters are learned, and show results on
-PASCAL VOC 2010-12.
-#+end_quote
-
-
-该句相当于说明了接下来的论文内容结构为:
-1. 每个模块是为什么这样设计；
-2. 它们的测试用例；
-3. 再详细阐述它们所学到的参数如何；
-4. PASCAL VOC 2010-12的性能表现。
-
-*** 模型设计
-#+begin_quote
-A variety of recent papers offer methods for generating category-independent
-region proposals.
-#+end_quote
-
-what's generating category-independent region proposals? And proposals?
-
-
-另外什么是 *selective search* ，其中RCNN是一种特殊的 *region proposal* 方法。并
-且与之前的检测研究相比较，参阅"[32, 35]"。
-
-文中的"4096-dimensional"是指？
-
-#+begin_quote
-using the Caffe [21] implementation of the CNN described by Krizhevsky et al.
-[22].
-#+end_quote
-
-本文作者选择使用Caffe框架以及由Keizhevsky的卷积网络模型来识别 region proposal ，
-具体的模型细节参阅[22]。
-
-
-"mean-subtracted"大概是指均差。
-
-#+begin_quote
-We refer readers to [21, 22] for more network architecture details.
-#+end_quote
-
-更多的网络结构细节参见[21, 22].
-
-#+begin_quote
-Prior to warping, we dilate the tight bounding box so that at the warped size
-there are exactly p pixels of warped image context around the original box (we
-use p = 16).
-#+end_quote
-
-大概是讲如何扭曲变换图片来着，具体得去看作者的实验代码。
-
 *** 测试时间检测？
 
 IoU（intersection-over-union)是什么？
@@ -208,28 +355,7 @@ such as spatial pyramids with *bag-of-visual-word encodings*.
 
 "UVA detection system"是指？
 
-#+begin_quote
-only class-specific computations are dot products between features and SVM
-weights and non-maximum suppression
-#+end_quote
-
-这段数学描述不是很懂。
-
-#+begin_quote
-The feature matrix is typically 2000 4096 and the SVM weight matrix is 4096 N where N is the number of classes.
-#+end_quote
-
-同上，毫无头绪。
-
 "resulting"，是什么鬼单词，有这种用法吗？
-
-
-#+begin_quote
-This analysis shows that R-CNN can scale to thousands of object classes without
-resorting to approximate techniques, such as *hashing*.
-#+end_quote
-
-喵喵喵？hashing是什么黑科技？
 
 *** Traning
 
@@ -499,12 +625,20 @@ pre-train是什么鬼，不是都迁移了吗？合着你们直接自己训练�
 这是你们先发现的？？？可怕 (note on p.587)
 
 
-"Rather than opposing lines of scientific inquiry, the two are natural and inevitable partners." (Girshick et al 2014:587)
-* 一些术语名词
-** SIFT
+"Rather than opposing lines of scientific inquiry, the two are natural and
+inevitable partners." (Girshick et al 2014:587)
+
+* 扩展阅读
+
+** 尺度不变特征变换（Scale-invariant Feature Transform）
+[[https://docs.opencv.org/trunk/da/df5/tutorial_py_sift_intro.html][原文来源]]，在任何尺度下拍摄到的图像都能检测到一致的关键点，而且每个被检测的特征点
+都对应一个尺度因子。这是对方向不变性的一种补充。
+
 ** HOG
 ** SVM
 * Footnotes
+
+[fn:3] V1，亦称纹状皮层（Striate cortex）。[[https://zh.wikipedia.org/wiki/%E8%A7%86%E8%A7%89%E7%9A%AE%E5%B1%82][更多信息]]见维基百科。
 
 [fn:1] [[https://stats.stackexchange.com/questions/312424/what-is-the-capacity-of-a-machine-learning-model][What is the “capacity” of a machine learning model?]]
 
