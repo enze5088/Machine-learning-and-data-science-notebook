@@ -8,7 +8,7 @@ Two Goal to take:
 1. Articles structures for writing
 2. Gain informations
 
-So, (temporary) process of that I read paper as followsg:
+So, (temporary) process of that I read paper as follows:
 1. Analysis structures
 2. Abstract, Introduction, and Conclusion or Discussion
 3. Technological details, Concept, and Comparison again and again
