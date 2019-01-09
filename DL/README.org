@@ -1,4 +1,6 @@
-#+TITLE:   README
+
+#+TITLE:   Status of Edition
+
 #+AUTHOR:  MoozIiSP
 #+DATE:    <2018-12-25 Tue>
 #+STARTUP: showall
@@ -21,6 +23,7 @@ Notes structure contains those parts:
 In the end, you can find more details about how to read paper as follows:
 - [[https://medium.com/ai-saturdays/how-to-read-academic-papers-without-freaking-out-3f7ef43a070f][How to Read Academic Papers without Freaking Out]]
 - [[https://medium.com/@drewdennis/how-to-read-scientific-papers-quickly-efficiently-e7030c4018fa][How to Read Scientific Papers Quickly & Efficiently]]
+
 
 * Top Conferences
 - CVPR
@@ -58,3 +61,4 @@ In the end, you can find more details about how to read paper as follows:
 | Note                                     | Date | Type         | Status |
 |------------------------------------------+------+--------------+--------|
 | Deep Reinforcement Learning: An Overview | 2015 | Full Content | WIP    |
+
