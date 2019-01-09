@@ -1,4 +1,6 @@
+
 #+TITLE:   Status of Edition
+
 #+AUTHOR:  MoozIiSP
 #+DATE:    <2018-12-25 Tue>
 #+STARTUP: showall
@@ -22,11 +24,41 @@ In the end, you can find more details about how to read paper as follows:
 - [[https://medium.com/ai-saturdays/how-to-read-academic-papers-without-freaking-out-3f7ef43a070f][How to Read Academic Papers without Freaking Out]]
 - [[https://medium.com/@drewdennis/how-to-read-scientific-papers-quickly-efficiently-e7030c4018fa][How to Read Scientific Papers Quickly & Efficiently]]
 
+
+* Top Conferences
+- CVPR
+- ICLR
+- NeurIPS
+- AAAI
+- ICCV
+- ICML
+- ACL
+
 * Status
-| Note                                                                             | Type         | Status |
-|----------------------------------------------------------------------------------+--------------+--------|
-| [[file:deep_learning_review.org][Deep Learning Review]]                                                             | Full Content | WIP    |
-| [[file:rcnn.org][Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation]] | Full Content | Almost |
-|                                                                                  |              |        |
-| ImageNet Classification with Deep Convolutional Neural Networks                  | Long Note    | WAIT   |
-|                                                                                  |              |        |
+
+** General
+| Note                                                                             |         Date | Type         | Status |
+|----------------------------------------------------------------------------------+--------------+--------------+--------|
+| [[file:deep_learning_review.org][Deep Learning Review]]                                                             |         2015 | Full Content | WIP    |
+
+** Convolutional Neural Networks
+| Note                                                                             |         Date | Type         | Status |
+|----------------------------------------------------------------------------------+--------------+--------------+--------|
+| ImageNet Classification with Deep Convolutional Neural Networks                  | NeurIPS 2012 | Long Note    | WAIT   |
+| Very deep convolutional networks for large-scale image recognition               |              |              |        |
+| Going deeper with convolutions                                                   |              |              |        |
+| Deep residual learning for image recognition                                     |              |              |        |
+
+** Object Detection
+| Note                                                                             |         Date | Type         | Status |
+|----------------------------------------------------------------------------------+--------------+--------------+--------|
+| [[file:rcnn.org][Rich Feature Hierarchies for Accurate Object Detection and Semantic Segmentation]] |    CVPR 2014 | Full Content | Almost |
+| Fast R-CNN                                                                       |         2015 | Long Note    | WAIT   |
+| Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks   |         2015 |              |        |
+| You Only Look Once: Unified, Real-Time Object Detection                          |         2015 |              |        |
+
+** Reinforcement Learning
+| Note                                     | Date | Type         | Status |
+|------------------------------------------+------+--------------+--------|
+| Deep Reinforcement Learning: An Overview | 2015 | Full Content | WIP    |
+

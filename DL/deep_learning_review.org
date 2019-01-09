@@ -1,7 +1,10 @@
 #+TITLE:     Note: Deep Learning Review
 #+AUTHOR:    MoozIiSP
-#+STARTUP:   indent
+
+#+STARTUP:   indent latexpreview
 #+SETUPFILE: theme-readtheorg.setup
+
+* About Authors
 
 * TODO Summary
 
